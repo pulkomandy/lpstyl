@@ -361,7 +361,7 @@ int main(int argc, char **argv)
 			{
 				int fd;
 				
-				fd = open(optarg, O_RDWR, 0);
+				fd = open(optarg, O_RDWR | O_SYNC, 0);
 				if(fd == -1)
 				{
 					perror("open");
@@ -1354,6 +1354,7 @@ void sendEncodedData(unsigned char *buffer, size_t size)
 {
 	unsigned char begin[4];
 	unsigned char save;
+	size_t pos = 0;
 
 	if(verbose)
 	{
@@ -1368,7 +1369,28 @@ void sendEncodedData(unsigned char *buffer, size_t size)
 
 	save = buffer[size];
 	buffer[size] = 0;
-	comm_printer_write(buffer, size+1);
+
+	while (pos < size+1)
+	{
+		int d, e;
+		int c = size + 1 - pos;
+		if (c > 256)
+			c = 256;
+		pos += comm_printer_write(buffer + pos, c);
+
+		fprintf(stderr, "%d %d\n", c, pos);
+
+		for (d = 0; d < c; d++)
+			fprintf(stderr,"%02X ", buffer[pos+d]);
+
+		d = getStatus('2');
+		e = getStatus('B');
+
+		usleep(USLEEP_TIME);
+		fprintf(stderr, "\n %03x -> %x %x\n", c, d, e);
+	}
+
+	//comm_printer_write(buffer, size+1);
 	buffer[size] = save;
 }
 
@@ -1771,7 +1793,7 @@ void waitStatus(int stat, int canHandlePaperOut)
 	last2 = c2 = getStatus('2');
 	last = c = getStatus('B');
 	
-	while(c != stat)
+	while(c == 0)
 	{
 		usleep(USLEEP_TIME);
 		if(verbose)
