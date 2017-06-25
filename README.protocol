@@ -70,6 +70,9 @@ Type 1 codes (prefix these with "\xFF\xFF\xFF"):
 
 "I" - Ejects the page and resets the printer.
 "1" - Returns something about the status of the printer.
+	Known values:
+	0x00 -- ready
+	0x40 -- printer lid open
 "2" - Returns error status of the printer.  The return value may actually 
 	consist of bitfields.  Known return values:
 	0x00 -- nothing wrong
@@ -81,7 +84,8 @@ Type 1 codes (prefix these with "\xFF\xFF\xFF"):
 	0xF8 means the buffer is empty, and lower values indicate more data
 	in the buffer.  On the 2500, 0x80 means the buffer is empty, and lower
 	values indicate more data in the buffer.  I don't know what values
-	indicate a completely full buffer on either model.
+	indicate a completely full buffer on either model.  It appears to be in
+	256 byte units or so.
 
 "p" - Distinguishes between the printers that return 'CS'.  Known return 
 	values:
